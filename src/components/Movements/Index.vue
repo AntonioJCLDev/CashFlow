@@ -21,7 +21,7 @@
 /* En este caso vamos a usar COMPOSITION API
 Importamos toRefs para convertir objetos en reactivos y 
 defineProps para definir los props necesarios en el componente */
-import { toRefs, defineProps } from "vue";
+import { toRefs, defineProps, defineEmits } from "vue";
 import Movement from "./Movement.vue";
 //Definimos los props
 const props = defineProps({
@@ -33,8 +33,10 @@ const props = defineProps({
 //Convertimos los props en reactivos y los guardamos en movements
 const { movements } = toRefs(props);
 
+const emit = defineEmits(["remove"]);
+
 const remove = (id) => {
-  console.log("remove", id);
+  emit("remove", id);
 };
 </script>
 

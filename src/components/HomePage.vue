@@ -10,19 +10,19 @@
       <Resume
         :label="label"
         :labelDefault="'Ahorro Total'"
-        :totalAmount="1000000"
+        :totalAmount="totalAmount"
         :amount="amount"
       >
         <template #graphic>
-          <Graphic />
+          <Graphic :amounts="amounts" @select="select" />
         </template>
         <template #action>
-          <Action />
+          <Action @create="create" />
         </template>
       </Resume>
     </template>
     <template #movements>
-      <Movements :movements="movements" />
+      <Movements :movements="movements" @remove="remove" />
     </template>
   </Layout>
 </template>
@@ -48,57 +48,60 @@ export default {
     return {
       amount: null,
       label: null,
-      movements: [
-        {
-          id: 0,
-          title: "Movimiento 1",
-          description: "Lorem ipsum dolor",
-          amount: -1000,
-        },
-        {
-          id: 1,
-          title: "Movimiento 2",
-          description: "Lorem ipsum dolor",
-          amount: 1000,
-        },
-        {
-          id: 2,
-          title: "Movimiento 3",
-          description: "Lorem ipsum dolor",
-          amount: 1000,
-        },
-        {
-          id: 3,
-          title: "Movimiento 4",
-          description: "Lorem ipsum dolor",
-          amount: -1000,
-        },
-        {
-          id: 4,
-          title: "Movimiento 5",
-          description: "Lorem ipsum dolor",
-          amount: 1000,
-        },
-        {
-          id: 5,
-          title: "Movimiento 6",
-          description: "Lorem ipsum dolor",
-          amount: 1000,
-        },
-        {
-          id: 6,
-          title: "Movimiento 7",
-          description: "Lorem ipsum dolor",
-          amount: 1000,
-        },
-        {
-          id: 7,
-          title: "Movimiento 8",
-          description: "Lorem ipsum dolor",
-          amount: 1000,
-        },
-      ],
+      movements: [],
     };
+  },
+  computed: {
+    amounts() {
+      const lastDays = this.movements
+        .filter((m) => {
+          const today = new Date();
+          const oldDate = today.setDate(today.getDate() - 30);
+
+          console.log(m);
+          return m.time > oldDate;
+        })
+        .map((m) => m.amount);
+      return lastDays.map((m, i) => {
+        const lastMovements = lastDays.slice(0, i + 1);
+        return lastMovements.reduce((suma, movement) => {
+          return suma + movement;
+        }, 0);
+      });
+    },
+    totalAmount() {
+      return this.movements.reduce((suma, m) => {
+        return suma + m.amount;
+      }, 0);
+    },
+  },
+  mounted() {
+    const movements = JSON.parse(localStorage.getItem("movements"));
+    console.log(movements);
+
+    if (Array.isArray(movements)) {
+      this.movements = movements.map((m) => {
+        return { ...m, time: new Date(m.time) };
+      });
+    }
+  },
+  methods: {
+    create(movement) {
+      this.movements.push(movement);
+      this.save();
+    },
+    remove(id) {
+      const index = this.movements.findIndex((m) => m.id === id);
+      this.movements.splice(index, 1);
+      this.save();
+    },
+    save() {
+      localStorage.setItem("movements", JSON.stringify(this.movements));
+    },
+    select(el) {
+      console.log(el);
+      this.amount = el;
+    },
   },
 };
 </script>
